@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CalcFit — Calorie Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131c;
+    --surface2: #1a1a27;
+    --border: #2a2a3d;
+    --accent: #e8ff47;
+    --accent2: #47ffb4;
+    --accent3: #ff6b47;
+    --text: #f0f0f5;
+    --muted: #7070a0;
+    --glow: rgba(232,255,71,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(232,255,71,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 80% 80%, rgba(71,255,180,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 30% at 60% 30%, rgba(255,107,71,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 32px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 64px 0 48px;
+    text-align: center;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(232,255,71,0.08);
+    border: 1px solid rgba(232,255,71,0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    animation: fadeSlideDown 0.6s ease both;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 8vw, 96px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+    animation: fadeSlideDown 0.6s 0.1s ease both;
+  }
+
+  .hero h1 span {
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero p {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 300;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+    animation: fadeSlideDown 0.6s 0.2s ease both;
+  }
+
+  /* TECH PILLS */
+  .tech-pills {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+    animation: fadeSlideDown 0.6s 0.3s ease both;
+  }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: var(--surface);
+  }
+
+  .pill.cpp { border-color: rgba(232,255,71,0.4); color: var(--accent); }
+
+  /* MAIN CALCULATOR CARD */
+  .calc-wrapper {
+    animation: fadeSlideUp 0.7s 0.3s ease both;
+  }
+
+  .calc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+
+  .calc-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+  }
+
+  .calc-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  .unit-toggle {
+    display: flex;
+    gap: 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .unit-btn {
+    padding: 7px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .unit-btn.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 600;
+  }
+
+  .calc-body {
+    padding: 32px;
+  }
+
+  /* GRID FORM */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 52px; }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  input[type="number"],
+  select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  input[type="number"]:focus,
+  select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,255,71,0.1);
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237070a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  select option { background: var(--surface2); }
+
+  /* GENDER TOGGLE */
+  .gender-toggle {
+    display: flex;
+    gap: 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .gender-btn {
+    flex: 1;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .gender-btn.active {
+    background: var(--surface2);
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* HEIGHT INPUT */
+  .height-inputs {
+    display: flex;
+    gap: 10px;
+  }
+
+  .height-inputs .input-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .input-wrap input { padding-right: 40px; }
+
+  .input-unit {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* CALC BUTTON */
+  .calc-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    margin-top: 28px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calc-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(232,255,71,0.3);
+  }
+
+  .calc-btn:active { transform: translateY(0); }
+
+  .calc-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .calc-btn:hover::after { transform: translateX(100%); }
+
+  /* RESULTS */
+  .results-section {
+    display: none;
+    animation: fadeSlideUp 0.5s ease both;
+  }
+
+  .results-section.visible { display: block; }
+
+  .results-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    margin-bottom: 24px;
+  }
+
+  .results-header {
+    padding: 24px 32px;
+    background: linear-gradient(135deg, rgba(232,255,71,0.08), rgba(71,255,180,0.05));
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .results-header .dot {
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .results-header h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+  }
+
+  /* BMR BIG NUMBER */
+  .bmr-display {
+    padding: 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bmr-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .bmr-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    line-height: 1;
+    color: var(--accent);
+    letter-spacing: -2px;
+  }
+
+  .bmr-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  /* GOAL TABLE */
+  .goals-grid {
+    padding: 32px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .goals-grid { grid-template-columns: 1fr; }
+  }
+
+  .goal-cell {
+    background: var(--surface);
+    padding: 24px 20px;
+    text-align: center;
+    transition: background 0.2s;
+  }
+
+  .goal-cell:hover { background: var(--surface2); }
+
+  .goal-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .goal-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .goal-cal {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 34px;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .goal-cal.lose { color: var(--accent3); }
+  .goal-cal.maintain { color: var(--accent); }
+  .goal-cal.gain { color: var(--accent2); }
+
+  .goal-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  /* ACTIVITY TABLE */
+  .activity-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+  }
+
+  .activity-table thead tr {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .activity-table th {
+    padding: 12px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .activity-table th:last-child { text-align: right; }
+
+  .activity-table tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+  }
+
+  .activity-table tbody tr:last-child { border-bottom: none; }
+
+  .activity-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  .activity-table td {
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+
+  .activity-table td:first-child { color: var(--muted); font-size: 13px; }
+  .activity-table td:last-child {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* INFO SECTION */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 60px;
+  }
+
+  @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .info-card h4 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .info-card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .formula-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 2;
+  }
+
+  .formula-box .var { color: var(--accent); }
+  .formula-box .op { color: var(--muted); }
+
+  /* CPP CODE SECTION */
+  .code-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .code-header {
+    padding: 16px 24px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .code-dots { display: flex; gap: 6px; }
+  .code-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+  }
+  .code-dot:nth-child(1) { background: #ff5f57; }
+  .code-dot:nth-child(2) { background: #ffbd2e; }
+  .code-dot:nth-child(3) { background: #28c840; }
+
+  .code-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .copy-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  pre {
+    padding: 28px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #c9d1d9;
+  }
+
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .type { color: #ffa657; }
+  .var2 { color: #e6edf3; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    margin-top: 40px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 300;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ANIMATIONS */
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .formula-section {
+    margin-bottom: 24px;
+  }
+
+  /* INPUT NUM SPINNER HIDE */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🔥</div>
+      <div class="logo-text">CalcFit</div>
+    </div>
+    <div class="badge">C++ PROJECT</div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">// HEALTH & FITNESS TOOL</div>
+    <h1>Calorie<span>Calculator</span></h1>
+    <p>Estimate your daily caloric needs based on BMR, activity level, and personal goals. Built with precision C++ algorithms.</p>
+    <div class="tech-pills">
+      <span class="pill cpp">C++17</span>
+      <span class="pill">Mifflin-St Jeor</span>
+      <span class="pill">Harris-Benedict</span>
+      <span class="pill">Katch-McArdle</span>
+    </div>
+  </div>
+
+  <!-- CALCULATOR CARD -->
+  <div class="calc-wrapper">
+    <div class="calc-card">
+      <div class="calc-header">
+        <h2>📊 Input Parameters</h2>
+        <div class="unit-toggle">
+          <button class="unit-btn active" onclick="setUnit('metric')">Metric</button>
+          <button class="unit-btn" onclick="setUnit('imperial')">Imperial</button>
+        </div>
+      </div>
+
+      <div class="calc-body">
+        <div class="form-grid">
+
+          <!-- Age -->
+          <div class="form-group">
+            <label>Age (years)</label>
+            <div class="input-wrap" style="position:relative;">
+              <input type="number" id="age" placeholder="25" min="15" max="80">
+              <span class="input-unit">yrs</span>
+            </div>
+          </div>
+
+          <!-- Gender -->
+          <div class="form-group">
+            <label>Biological Sex</label>
+            <div class="gender-toggle">
+              <button class="gender-btn active" id="btn-male" onclick="setGender('male')">♂ Male</button>
+              <button class="gender-btn" id="btn-female" onclick="setGender('female')">♀ Female</button>
+            </div>
+          </div>
+
+          <!-- Height -->
+          <div class="form-group">
+            <label>Height</label>
+            <div class="height-inputs" id="height-metric">
+              <div class="input-wrap">
+                <input type="number" id="height-cm" placeholder="175">
+                <span class="input-unit">cm</span>
+              </div>
+            </div>
+            <div class="height-inputs" id="height-imperial" style="display:none">
+              <div class="input-wrap">
+                <input type="number" id="height-ft" placeholder="5">
+                <span class="input-unit">ft</span>
+              </div>
+              <div class="input-wrap">
+                <input type="number" id="height-in" placeholder="9">
+                <span class="input-unit">in</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weight -->
+          <div class="form-group">
+            <label>Weight</label>
+            <div class="input-wrap">
+              <input type="number" id="weight" placeholder="70">
+              <span class="input-unit" id="weight-unit">kg</span>
+            </div>
+          </div>
+
+          <!-- Activity -->
+          <div class="form-group full">
+            <label>Activity Level</label>
+            <select id="activity">
+              <option value="1.2">🛋️ Sedentary — Little or no exercise</option>
+              <option value="1.375">🚶 Light — Exercise 1–3 days/week</option>
+              <option value="1.55" selected>🏃 Moderate — Exercise 4–5 days/week</option>
+              <option value="1.725">💪 Active — Daily exercise or intense 3–4 days/week</option>
+              <option value="1.9">🔥 Very Active — Intense exercise 6–7 days/week</option>
+              <option value="2.1">⚡ Extra Active — Very intense daily or physical job</option>
+            </select>
+          </div>
+
+          <!-- Formula -->
+          <div class="form-group full">
+            <label>BMR Formula</label>
+            <select id="formula">
+              <option value="mifflin">Mifflin-St Jeor (Recommended)</option>
+              <option value="harris">Revised Harris-Benedict</option>
+            </select>
+          </div>
+
+        </div>
+
+        <button class="calc-btn" onclick="calculate()">⚡ CALCULATE CALORIES</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-section" id="results">
+      <div class="results-card">
+        <div class="results-header">
+          <div class="dot"></div>
+          <h3>📈 Your Results</h3>
+        </div>
+
+        <!-- BMR -->
+        <div class="bmr-display">
+          <div class="bmr-label">Basal Metabolic Rate (BMR)</div>
+          <div class="bmr-value" id="bmr-val">—</div>
+          <div class="bmr-sub">calories per day at complete rest</div>
+        </div>
+
+        <!-- Goal Cards -->
+        <div class="goals-grid">
+          <div class="goal-cell">
+            <span class="goal-icon">⬇️</span>
+            <div class="goal-label">Weight Loss</div>
+            <div class="goal-cal lose" id="goal-lose">—</div>
+            <div class="goal-sub">-500 cal/day</div>
+          </div>
+          <div class="goal-cell">
+            <span class="goal-icon">⚖️</span>
+            <div class="goal-label">Maintain</div>
+            <div class="goal-cal maintain" id="goal-maintain">—</div>
+            <div class="goal-sub">TDEE</div>
+          </div>
+          <div class="goal-cell">
+            <span class="goal-icon">⬆️</span>
+            <div class="goal-label">Weight Gain</div>
+            <div class="goal-cal gain" id="goal-gain">—</div>
+            <div class="goal-sub">+500 cal/day</div>
+          </div>
+        </div>
+
+        <!-- Activity Breakdown -->
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th>Activity Level</th>
+              <th>Multiplier</th>
+              <th>Calories/Day</th>
+            </tr>
+          </thead>
+          <tbody id="activity-table-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INFO CARDS -->
+    <div class="info-grid formula-section">
+      <div class="info-card">
+        <h4>🧮 Mifflin-St Jeor</h4>
+        <p>The most accurate modern BMR formula. Recommended for most people.</p>
+        <div class="formula-box">
+          <span class="kw">// Male</span><br>
+          BMR = <span class="var">10</span>W + <span class="var">6.25</span>H − <span class="var">5</span>A + <span class="var">5</span><br>
+          <span class="kw">// Female</span><br>
+          BMR = <span class="var">10</span>W + <span class="var">6.25</span>H − <span class="var">5</span>A − <span class="var">161</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <h4>📐 Harris-Benedict</h4>
+        <p>Classic formula revised in 1984. Widely used before Mifflin-St Jeor.</p>
+        <div class="formula-box">
+          <span class="kw">// Male</span><br>
+          BMR = <span class="var">13.4</span>W + <span class="var">4.8</span>H − <span class="var">5.68</span>A + <span class="var">88.4</span><br>
+          <span class="kw">// Female</span><br>
+          BMR = <span class="var">9.25</span>W + <span class="var">3.1</span>H − <span class="var">4.33</span>A + <span class="var">447.6</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <h4>🎯 What is TDEE?</h4>
+        <p>Total Daily Energy Expenditure (TDEE) = BMR × Activity Factor. It represents the total calories burned in a day including all activity.</p>
+      </div>
+      <div class="info-card">
+        <h4>⚖️ Weight Goals</h4>
+        <p>1 lb ≈ 3,500 calories. A deficit of 500 cal/day loses ~1 lb/week. A surplus of 500 cal/day gains ~1 lb/week. Never cut more than 1,000 cal/day.</p>
+      </div>
+    </div>
+
+    <!-- C++ CODE SNIPPET -->
+    <div class="code-card">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+        </div>
+        <div class="code-title">calorie_calculator.cpp</div>
+        <button class="copy-btn" onclick="copyCode()">COPY</button>
+      </div>
+<pre id="cpp-code"><span class="cmt">// CalcFit — Calorie Calculator in C++
+// Uses Mifflin-St Jeor & Harris-Benedict Equations</span>
+
+<span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;iomanip&gt;</span>
+<span class="kw">using namespace</span> <span class="type">std</span>;
+
+<span class="type">struct</span> <span class="fn">UserData</span> {
+    <span class="type">double</span> weight_kg;
+    <span class="type">double</span> height_cm;
+    <span class="type">int</span>    age;
+    <span class="type">char</span>   gender;       <span class="cmt">// 'M' or 'F'</span>
+    <span class="type">double</span> activity;     <span class="cmt">// 1.2 - 1.9</span>
+};
+
+<span class="cmt">// Mifflin-St Jeor Equation</span>
+<span class="type">double</span> <span class="fn">calcBMR_Mifflin</span>(<span class="kw">const</span> <span class="fn">UserData</span>&amp; u) {
+    <span class="type">double</span> bmr = 10*u.weight_kg + 6.25*u.height_cm - 5*u.age;
+    <span class="kw">return</span> (u.gender == <span class="str">'M'</span>) ? bmr + 5 : bmr - 161;
+}
+
+<span class="cmt">// Harris-Benedict Equation (Revised)</span>
+<span class="type">double</span> <span class="fn">calcBMR_Harris</span>(<span class="kw">const</span> <span class="fn">UserData</span>&amp; u) {
+    <span class="kw">if</span> (u.gender == <span class="str">'M'</span>)
+        <span class="kw">return</span> 13.397*u.weight_kg + 4.799*u.height_cm - 5.677*u.age + 88.362;
+    <span class="kw">return</span> 9.247*u.weight_kg + 3.098*u.height_cm - 4.330*u.age + 447.593;
+}
+
+<span class="type">void</span> <span class="fn">printResults</span>(<span class="type">double</span> bmr, <span class="type">double</span> activity) {
+    <span class="type">double</span> tdee = bmr * activity;
+    cout &lt;&lt; fixed &lt;&lt; setprecision(0);
+    cout &lt;&lt; <span class="str">"\n===== RESULTS =====\n"</span>;
+    cout &lt;&lt; <span class="str">"BMR       : "</span> &lt;&lt; bmr  &lt;&lt; <span class="str">" kcal/day\n"</span>;
+    cout &lt;&lt; <span class="str">"Maintain  : "</span> &lt;&lt; tdee &lt;&lt; <span class="str">" kcal/day\n"</span>;
+    cout &lt;&lt; <span class="str">"Lose 1lb  : "</span> &lt;&lt; tdee-500 &lt;&lt; <span class="str">" kcal/day\n"</span>;
+    cout &lt;&lt; <span class="str">"Gain 1lb  : "</span> &lt;&lt; tdee+500 &lt;&lt; <span class="str">" kcal/day\n"</span>;
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="fn">UserData</span> user;
+    cout &lt;&lt; <span class="str">"=== CalcFit: Calorie Calculator ===\n\n"</span>;
+    cout &lt;&lt; <span class="str">"Weight (kg): "</span>;  cin &gt;&gt; user.weight_kg;
+    cout &lt;&lt; <span class="str">"Height (cm): "</span>;  cin &gt;&gt; user.height_cm;
+    cout &lt;&lt; <span class="str">"Age:         "</span>;  cin &gt;&gt; user.age;
+    cout &lt;&lt; <span class="str">"Gender (M/F): "</span>; cin &gt;&gt; user.gender;
+    cout &lt;&lt; <span class="str">"Activity (1.2-1.9): "</span>; cin &gt;&gt; user.activity;
+
+    <span class="type">double</span> bmr = <span class="fn">calcBMR_Mifflin</span>(user);
+    <span class="fn">printResults</span>(bmr, user.activity);
+    <span class="kw">return</span> 0;
+}</pre>
+    </div>
+
+  </div><!-- end calc-wrapper -->
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Built with 💛 using <strong>C++</strong> · Algorithms: Mifflin-St Jeor & Harris-Benedict · For educational purposes only</p>
+    <p style="margin-top:8px;">Not medical advice — consult a registered dietitian for personalized guidance.</p>
+  </footer>
+
+</div>
+
+<script>
+  let unit = 'metric';
+  let gender = 'male';
+
+  function setUnit(u) {
+    unit = u;
+    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('height-metric').style.display = u === 'metric' ? 'flex' : 'none';
+    document.getElementById('height-imperial').style.display = u === 'imperial' ? 'flex' : 'none';
+    document.getElementById('weight-unit').textContent = u === 'metric' ? 'kg' : 'lbs';
+    document.getElementById('weight').placeholder = u === 'metric' ? '70' : '154';
+    document.getElementById('height-cm').placeholder = u === 'metric' ? '175' : '';
+    document.getElementById('height-ft').placeholder = '5';
+    document.getElementById('height-in').placeholder = '9';
+  }
+
+  function setGender(g) {
+    gender = g;
+    document.getElementById('btn-male').classList.toggle('active', g === 'male');
+    document.getElementById('btn-female').classList.toggle('active', g === 'female');
+  }
+
+  function getHeightCm() {
+    if (unit === 'metric') {
+      return parseFloat(document.getElementById('height-cm').value) || 0;
+    } else {
+      const ft = parseFloat(document.getElementById('height-ft').value) || 0;
+      const inch = parseFloat(document.getElementById('height-in').value) || 0;
+      return (ft * 12 + inch) * 2.54;
+    }
+  }
+
+  function getWeightKg() {
+    const w = parseFloat(document.getElementById('weight').value) || 0;
+    return unit === 'metric' ? w : w * 0.453592;
+  }
+
+  function calcBMR(weightKg, heightCm, age, formula) {
+    if (formula === 'mifflin') {
+      const base = 10 * weightKg + 6.25 * heightCm - 5 * age;
+      return gender === 'male' ? base + 5 : base - 161;
+    } else {
+      if (gender === 'male')
+        return 13.397 * weightKg + 4.799 * heightCm - 5.677 * age + 88.362;
+      return 9.247 * weightKg + 3.098 * heightCm - 4.330 * age + 447.593;
+    }
+  }
+
+  const activityLevels = [
+    { label: 'Sedentary (little/no exercise)', mult: 1.2 },
+    { label: 'Light (1–3 days/week)', mult: 1.375 },
+    { label: 'Moderate (4–5 days/week)', mult: 1.55 },
+    { label: 'Active (daily or intense 3–4×)', mult: 1.725 },
+    { label: 'Very Active (intense 6–7×)', mult: 1.9 },
+    { label: 'Extra Active (physical job)', mult: 2.1 },
+  ];
+
+  function calculate() {
+    const age = parseInt(document.getElementById('age').value);
+    const weight = getWeightKg();
+    const height = getHeightCm();
+    const activity = parseFloat(document.getElementById('activity').value);
+    const formula = document.getElementById('formula').value;
+
+    if (!age || !weight || !height) {
+      shakeBtn();
+      return;
+    }
+
+    const bmr = calcBMR(weight, height, age, formula);
+    const tdee = bmr * activity;
+
+    document.getElementById('bmr-val').textContent = Math.round(bmr).toLocaleString();
+    document.getElementById('goal-lose').textContent = Math.round(tdee - 500).toLocaleString();
+    document.getElementById('goal-maintain').textContent = Math.round(tdee).toLocaleString();
+    document.getElementById('goal-gain').textContent = Math.round(tdee + 500).toLocaleString();
+
+    // Activity table
+    const tbody = document.getElementById('activity-table-body');
+    tbody.innerHTML = activityLevels.map(a => `
+      <tr>
+        <td>${a.label}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);">×${a.mult}</td>
+        <td>${Math.round(bmr * a.mult).toLocaleString()}</td>
+      </tr>
+    `).join('');
+
+    const results = document.getElementById('results');
+    results.classList.add('visible');
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function shakeBtn() {
+    const btn = document.querySelector('.calc-btn');
+    btn.style.transform = 'translateX(-6px)';
+    setTimeout(() => btn.style.transform = 'translateX(6px)', 80);
+    setTimeout(() => btn.style.transform = 'translateX(-4px)', 160);
+    setTimeout(() => btn.style.transform = 'translateX(0)', 240);
+  }
+
+  function copyCode() {
+    const raw = `// CalcFit — Calorie Calculator in C++
+#include <iostream>
+#include <string>
+#include <iomanip>
+using namespace std;
+
+struct UserData {
+    double weight_kg;
+    double height_cm;
+    int    age;
+    char   gender;
+    double activity;
+};
+
+double calcBMR_Mifflin(const UserData& u) {
+    double bmr = 10*u.weight_kg + 6.25*u.height_cm - 5*u.age;
+    return (u.gender == 'M') ? bmr + 5 : bmr - 161;
+}
+
+double calcBMR_Harris(const UserData& u) {
+    if (u.gender == 'M')
+        return 13.397*u.weight_kg + 4.799*u.height_cm - 5.677*u.age + 88.362;
+    return 9.247*u.weight_kg + 3.098*u.height_cm - 4.330*u.age + 447.593;
+}
+
+void printResults(double bmr, double activity) {
+    double tdee = bmr * activity;
+    cout << fixed << setprecision(0);
+    cout << "\\n===== RESULTS =====\\n";
+    cout << "BMR       : " << bmr       << " kcal/day\\n";
+    cout << "Maintain  : " << tdee      << " kcal/day\\n";
+    cout << "Lose 1lb  : " << tdee-500  << " kcal/day\\n";
+    cout << "Gain 1lb  : " << tdee+500  << " kcal/day\\n";
+}
+
+int main() {
+    UserData user;
+    cout << "=== CalcFit: Calorie Calculator ===\\n\\n";
+    cout << "Weight (kg): ";  cin >> user.weight_kg;
+    cout << "Height (cm): ";  cin >> user.height_cm;
+    cout << "Age:         ";  cin >> user.age;
+    cout << "Gender (M/F): "; cin >> user.gender;
+    cout << "Activity (1.2-1.9): "; cin >> user.activity;
+
+    double bmr = calcBMR_Mifflin(user);
+    printResults(bmr, user.activity);
+    return 0;
+}`;
+    navigator.clipboard.writeText(raw).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✓ COPIED';
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'var(--accent)';
+      setTimeout(() => {
+        btn.textContent = 'COPY';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
