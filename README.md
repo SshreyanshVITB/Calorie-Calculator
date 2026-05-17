@@ -206,8 +206,8 @@ A browser-based version of this calculator is included (`index.html`). Open it d
 ## 👤 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+- GitHub:[ [@yourusername](https://github.com/yourusername)](https://github.com/SshreyanshVITB)
+- LinkedIn: [[Your LinkedIn](https://linkedin.com/in/yourprofile)](https://www.linkedin.com/in/shreyansh-singh-20aug2004/)
 
 ---
 
